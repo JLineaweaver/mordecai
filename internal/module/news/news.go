@@ -23,24 +23,15 @@ func (m *Module) Name() string {
 }
 
 type rssSource struct {
-	Name string
-	URL  string
+	Name     string
+	URL      string
+	MaxItems int
 }
 
 func (m *Module) Fetch(ctx context.Context, cfg map[string]interface{}) (*module.Result, error) {
 	sources, err := parseSources(cfg)
 	if err != nil {
 		return nil, err
-	}
-
-	maxItems := 10
-	if v, ok := cfg["max_items"]; ok {
-		switch n := v.(type) {
-		case int:
-			maxItems = n
-		case float64:
-			maxItems = int(n)
-		}
 	}
 
 	var sections []string
@@ -51,7 +42,7 @@ func (m *Module) Fetch(ctx context.Context, cfg map[string]interface{}) (*module
 			continue
 		}
 
-		limit := maxItems
+		limit := src.MaxItems
 		if limit > len(items) {
 			limit = len(items)
 		}
@@ -81,6 +72,16 @@ func parseSources(cfg map[string]interface{}) ([]rssSource, error) {
 		return nil, fmt.Errorf("news 'sources' must be a list")
 	}
 
+	globalMax := 5
+	if v, ok := cfg["max_items"]; ok {
+		switch n := v.(type) {
+		case int:
+			globalMax = n
+		case float64:
+			globalMax = int(n)
+		}
+	}
+
 	var sources []rssSource
 	for _, raw := range sourceList {
 		entry, ok := raw.(map[string]interface{})
@@ -89,9 +90,21 @@ func parseSources(cfg map[string]interface{}) ([]rssSource, error) {
 		}
 		name, _ := entry["name"].(string)
 		url, _ := entry["url"].(string)
-		if name != "" && url != "" {
-			sources = append(sources, rssSource{Name: name, URL: url})
+		if name == "" || url == "" {
+			continue
 		}
+
+		maxItems := globalMax
+		if v, ok := entry["max_items"]; ok {
+			switch n := v.(type) {
+			case int:
+				maxItems = n
+			case float64:
+				maxItems = int(n)
+			}
+		}
+
+		sources = append(sources, rssSource{Name: name, URL: url, MaxItems: maxItems})
 	}
 
 	if len(sources) == 0 {

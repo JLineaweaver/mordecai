@@ -5,12 +5,13 @@ modules:
   # News headlines from RSS feeds (no API key required)
   news:
     enabled: true
+    max_items: 5  # default per source, can be overridden per source below
     sources:
       - name: "Hacker News"
         url: "https://hnrss.org/frontpage"
+        # max_items: 10  # optional per-source override
       - name: "BBC World"
         url: "http://feeds.bbci.co.uk/news/world/rss.xml"
-    max_items: 10
 
   # Sports scores and upcoming games (Phase 2 - not yet implemented)
   sports:
