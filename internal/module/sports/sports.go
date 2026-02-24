@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jlineaweaver/mordecai/internal/module"
 )
@@ -38,9 +39,13 @@ func (m *Module) Fetch(ctx context.Context, cfg map[string]interface{}) (*module
 		return nil, err
 	}
 
+	now := time.Now()
+	yesterday := now.AddDate(0, 0, -1)
+	today := now
+
 	var sections []string
 	for _, league := range leagues {
-		section, err := fetchLeague(ctx, league)
+		section, err := fetchLeague(ctx, league, yesterday, today)
 		if err != nil {
 			sections = append(sections, fmt.Sprintf("### %s\n*Failed to fetch: %v*", league.Name, err))
 			continue
@@ -53,7 +58,7 @@ func (m *Module) Fetch(ctx context.Context, cfg map[string]interface{}) (*module
 	if len(sections) == 0 {
 		return &module.Result{
 			Title:   "Sports",
-			Content: "*No games found for your teams today.*",
+			Content: "*No games found for your teams.*",
 		}, nil
 	}
 
@@ -107,13 +112,16 @@ func parseLeagues(cfg map[string]interface{}) ([]leagueConfig, error) {
 	return leagues, nil
 }
 
-func fetchLeague(ctx context.Context, league leagueConfig) (string, error) {
+func fetchLeague(ctx context.Context, league leagueConfig, yesterday, today time.Time) (string, error) {
 	slugs, ok := leagueSlugs[strings.ToUpper(league.Name)]
 	if !ok {
 		return "", fmt.Errorf("unknown league %q", league.Name)
 	}
 
-	url := fmt.Sprintf("https://site.api.espn.com/apis/site/v2/sports/%s/%s/scoreboard", slugs[0], slugs[1])
+	// Fetch yesterday and today's games in a single request using date range.
+	dateRange := fmt.Sprintf("%s-%s", yesterday.Format("20060102"), today.Format("20060102"))
+	url := fmt.Sprintf("https://site.api.espn.com/apis/site/v2/sports/%s/%s/scoreboard?dates=%s",
+		slugs[0], slugs[1], dateRange)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -146,6 +154,9 @@ func fetchLeague(ctx context.Context, league leagueConfig) (string, error) {
 		teamSet[strings.ToLower(t)] = true
 	}
 
+	yesterdayDate := yesterday.Format("2006-01-02")
+	todayDate := today.Format("2006-01-02")
+
 	var lines []string
 	for _, event := range data.Events {
 		if len(event.Competitions) == 0 {
@@ -165,7 +176,25 @@ func fetchLeague(ctx context.Context, league leagueConfig) (string, error) {
 			continue
 		}
 
-		lines = append(lines, formatGame(comp))
+		// Parse event date to determine if it's yesterday or today.
+		eventTime, err := time.Parse(time.RFC3339, event.Date)
+		if err != nil {
+			continue
+		}
+		eventDate := eventTime.Local().Format("2006-01-02")
+
+		state := comp.Status.Type.State
+
+		// Yesterday: only show completed games (results).
+		// Today: show scheduled, in-progress, and completed games.
+		if eventDate == yesterdayDate && state != "post" {
+			continue
+		}
+		if eventDate != yesterdayDate && eventDate != todayDate {
+			continue
+		}
+
+		lines = append(lines, formatGame(comp, eventTime))
 	}
 
 	if len(lines) == 0 {
@@ -175,7 +204,7 @@ func fetchLeague(ctx context.Context, league leagueConfig) (string, error) {
 	return fmt.Sprintf("### %s\n%s", league.Name, strings.Join(lines, "\n")), nil
 }
 
-func formatGame(comp espnCompetition) string {
+func formatGame(comp espnCompetition, eventTime time.Time) string {
 	var home, away espnCompetitor
 	for _, c := range comp.Competitors {
 		if c.HomeAway == "home" {
@@ -189,22 +218,20 @@ func formatGame(comp espnCompetition) string {
 
 	switch state {
 	case "post":
-		// Final score
 		return fmt.Sprintf("- **%s** %s - %s **%s** (%s)",
 			away.Team.Abbreviation, away.Score,
 			home.Score, home.Team.Abbreviation,
 			comp.Status.Type.Description)
 	case "in":
-		// In progress
 		return fmt.Sprintf("- **%s** %s - %s **%s** (%s %s)",
 			away.Team.Abbreviation, away.Score,
 			home.Score, home.Team.Abbreviation,
 			comp.Status.Type.Description, comp.Status.DisplayClock)
 	default:
-		// Scheduled
-		return fmt.Sprintf("- %s @ %s (%s)",
-			away.Team.DisplayName, home.Team.DisplayName,
-			comp.Status.Type.Description)
+		// Scheduled — show game time in local timezone.
+		gameTime := eventTime.Local().Format("3:04 PM")
+		return fmt.Sprintf("- %s @ %s — %s",
+			away.Team.DisplayName, home.Team.DisplayName, gameTime)
 	}
 }
 
@@ -215,6 +242,7 @@ type espnResponse struct {
 }
 
 type espnEvent struct {
+	Date         string            `json:"date"`
 	Competitions []espnCompetition `json:"competitions"`
 }
 
