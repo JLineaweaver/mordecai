@@ -13,9 +13,9 @@ modules:
       - name: "BBC World"
         url: "http://feeds.bbci.co.uk/news/world/rss.xml"
 
-  # Sports scores and upcoming games (Phase 2 - not yet implemented)
+  # Sports scores and upcoming games (ESPN API)
   sports:
-    enabled: false
+    enabled: true
     leagues:
       - name: "NFL"
         teams: ["Philadelphia Eagles"]
@@ -28,9 +28,9 @@ modules:
       - name: "EPL"
         teams: ["Tottenham Hotspur"]
 
-  # Stock prices (Phase 2 - not yet implemented)
+  # Stock prices (Yahoo Finance)
   stocks:
-    enabled: false
+    enabled: true
     tickers: ["AAPL", "GOOGL", "MSFT", "SPY", "DDOG"]
 
   # Weather forecast (Phase 3 - not yet implemented)

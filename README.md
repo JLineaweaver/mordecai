@@ -65,7 +65,7 @@ type Module interface {
 
 ## GitHub Actions
 
-Add `DISCORD_WEBHOOK_URL` as a repository secret, then the included workflow will run your digest daily at 7:00 AM ET.
+Add `DISCORD_WEBHOOK_URL` as a repository secret, then the included workflow will run your digest daily at 6:00 AM MST.
 
 ## License
 
