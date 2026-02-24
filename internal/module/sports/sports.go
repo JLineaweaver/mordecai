@@ -154,8 +154,10 @@ func fetchLeague(ctx context.Context, league leagueConfig, yesterday, today time
 		teamSet[strings.ToLower(t)] = true
 	}
 
-	yesterdayDate := yesterday.Format("2006-01-02")
-	todayDate := today.Format("2006-01-02")
+	// The ESPN date range gives us yesterday+today's games.
+	// We want: completed games (results) + today's scheduled/in-progress games.
+	// Filter out scheduled games that aren't today.
+	todayUTC := today.UTC().Format("2006-01-02")
 
 	var lines []string
 	for _, event := range data.Events {
@@ -176,22 +178,24 @@ func fetchLeague(ctx context.Context, league leagueConfig, yesterday, today time
 			continue
 		}
 
-		// Parse event date to determine if it's yesterday or today.
 		eventTime, err := time.Parse(time.RFC3339, event.Date)
 		if err != nil {
-			continue
+			// Try alternate format ESPN sometimes uses.
+			eventTime, err = time.Parse("2006-01-02T15:04Z", event.Date)
+			if err != nil {
+				continue
+			}
 		}
-		eventDate := eventTime.Local().Format("2006-01-02")
 
 		state := comp.Status.Type.State
 
-		// Yesterday: only show completed games (results).
-		// Today: show scheduled, in-progress, and completed games.
-		if eventDate == yesterdayDate && state != "post" {
-			continue
-		}
-		if eventDate != yesterdayDate && eventDate != todayDate {
-			continue
+		// Always show completed and in-progress games.
+		// For scheduled games, only show if they're today.
+		if state == "pre" {
+			eventDateUTC := eventTime.UTC().Format("2006-01-02")
+			if eventDateUTC != todayUTC {
+				continue
+			}
 		}
 
 		lines = append(lines, formatGame(comp, eventTime))
