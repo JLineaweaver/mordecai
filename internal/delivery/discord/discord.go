@@ -24,7 +24,11 @@ func (d *Delivery) Name() string {
 // Discord webhook message payload.
 type webhookPayload struct {
 	Content string `json:"content"`
+	Flags   int    `json:"flags,omitempty"`
 }
+
+// flagSuppressEmbeds tells Discord not to generate link preview embeds.
+const flagSuppressEmbeds = 4
 
 // maxMessageLen is Discord's max message length.
 const maxMessageLen = 2000
@@ -43,7 +47,7 @@ func (d *Delivery) Send(ctx context.Context, digest string) error {
 }
 
 func (d *Delivery) sendChunk(ctx context.Context, content string) error {
-	payload := webhookPayload{Content: content}
+	payload := webhookPayload{Content: content, Flags: flagSuppressEmbeds}
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("marshaling payload: %w", err)
