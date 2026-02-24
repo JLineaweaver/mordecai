@@ -67,10 +67,33 @@ func (o *Orchestrator) Run(ctx context.Context) error {
 		close(results)
 	}()
 
-	// Collect results in order of completion.
+	// Collect results into a map keyed by module name.
+	resultMap := make(map[string]moduleResult)
+	for r := range results {
+		resultMap[r.name] = r
+	}
+
+	// Determine display order: use module_order from config, falling back to
+	// appending any enabled modules not listed in the order.
+	order := o.cfg.ModuleOrder
+	seen := make(map[string]bool)
+	for _, name := range order {
+		seen[name] = true
+	}
+	for name := range enabledModules {
+		if !seen[name] {
+			order = append(order, name)
+		}
+	}
+
+	// Assemble sections in the configured order.
 	var sections []string
 	var errors []string
-	for r := range results {
+	for _, name := range order {
+		r, ok := resultMap[name]
+		if !ok {
+			continue
+		}
 		if r.err != nil {
 			errors = append(errors, fmt.Sprintf("**%s**: %v", r.name, r.err))
 			continue

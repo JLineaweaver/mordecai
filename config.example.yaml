@@ -1,6 +1,9 @@
 # Mordecai - Daily Digest Configuration
 # Copy this file to config.yaml and customize it.
 
+# Controls the order modules appear in the digest.
+module_order: ["sports", "stocks", "news"]
+
 modules:
   # News headlines from RSS feeds (no API key required)
   news:

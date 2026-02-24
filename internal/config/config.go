@@ -10,8 +10,9 @@ import (
 
 // Config is the top-level configuration structure.
 type Config struct {
-	Modules  ModulesConfig  `yaml:"modules"`
-	Delivery DeliveryConfig `yaml:"delivery"`
+	ModuleOrder []string       `yaml:"module_order,omitempty"`
+	Modules     ModulesConfig  `yaml:"modules"`
+	Delivery    DeliveryConfig `yaml:"delivery"`
 }
 
 // ModulesConfig holds config for all available modules.
