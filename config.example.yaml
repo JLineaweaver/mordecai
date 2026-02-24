@@ -30,12 +30,12 @@ modules:
   # Stock prices (Phase 2 - not yet implemented)
   stocks:
     enabled: false
-    tickers: ["AAPL", "GOOGL", "MSFT", "SPY"]
+    tickers: ["AAPL", "GOOGL", "MSFT", "SPY", "DDOG"]
 
   # Weather forecast (Phase 3 - not yet implemented)
   weather:
     enabled: false
-    location: "Philadelphia, PA"
+    location: "Littleton, CO"
 
 delivery:
   discord:
