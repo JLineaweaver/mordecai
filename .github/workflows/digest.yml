@@ -22,4 +22,4 @@ jobs:
       - name: Run Digest
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: ./mordecai --config config.yaml
+        run: ./mordecai --config config.example.yaml
