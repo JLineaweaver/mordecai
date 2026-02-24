@@ -1,0 +1,43 @@
+# Mordecai - Daily Digest Configuration
+# Copy this file to config.yaml and customize it.
+
+modules:
+  # News headlines from RSS feeds (no API key required)
+  news:
+    enabled: true
+    sources:
+      - name: "Hacker News"
+        url: "https://hnrss.org/frontpage"
+      - name: "BBC World"
+        url: "http://feeds.bbci.co.uk/news/world/rss.xml"
+    max_items: 10
+
+  # Sports scores and upcoming games (Phase 2 - not yet implemented)
+  sports:
+    enabled: false
+    leagues:
+      - name: "NFL"
+        teams: ["Philadelphia Eagles"]
+      - name: "NBA"
+        teams: ["Philadelphia 76ers"]
+      - name: "MLB"
+        teams: ["Philadelphia Phillies"]
+      - name: "NHL"
+        teams: ["Philadelphia Flyers"]
+      - name: "EPL"
+        teams: ["Tottenham Hotspur"]
+
+  # Stock prices (Phase 2 - not yet implemented)
+  stocks:
+    enabled: false
+    tickers: ["AAPL", "GOOGL", "MSFT", "SPY"]
+
+  # Weather forecast (Phase 3 - not yet implemented)
+  weather:
+    enabled: false
+    location: "Philadelphia, PA"
+
+delivery:
+  discord:
+    enabled: true
+    webhook_url: "${DISCORD_WEBHOOK_URL}"

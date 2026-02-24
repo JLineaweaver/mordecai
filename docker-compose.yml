@@ -1,0 +1,7 @@
+services:
+  mordecai:
+    build: .
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+    environment:
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
