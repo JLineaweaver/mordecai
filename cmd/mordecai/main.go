@@ -16,6 +16,7 @@ import (
 	"github.com/jlineaweaver/mordecai/internal/module/news"
 	"github.com/jlineaweaver/mordecai/internal/module/sports"
 	"github.com/jlineaweaver/mordecai/internal/module/stocks"
+	"github.com/jlineaweaver/mordecai/internal/module/weather"
 )
 
 func main() {
@@ -32,7 +33,8 @@ func main() {
 	modules := map[string]module.Module{
 		"news":   news.New(),
 		"sports": sports.New(),
-		"stocks": stocks.New(),
+		"stocks":  stocks.New(),
+		"weather": weather.New(),
 	}
 
 	// Register available delivery channels.

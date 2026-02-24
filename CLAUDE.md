@@ -27,6 +27,6 @@ go test ./...                           # Test all
 ## Module Status
 
 - **news**: Implemented (RSS feeds)
-- **sports**: Stub (Phase 2 - ESPN API)
-- **stocks**: Stub (Phase 2 - Yahoo Finance)
-- **weather**: Stub (Phase 3 - Open-Meteo)
+- **sports**: Implemented (ESPN API)
+- **stocks**: Implemented (Yahoo Finance)
+- **weather**: Implemented (Open-Meteo API, free, no key)
