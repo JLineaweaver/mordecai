@@ -232,9 +232,9 @@ func formatGame(comp espnCompetition, eventTime time.Time) string {
 			home.Score, home.Team.Abbreviation,
 			comp.Status.Type.Description, comp.Status.DisplayClock)
 	default:
-		// Scheduled — show game time in MST.
-		mst := time.FixedZone("MST", -7*60*60)
-		gameTime := eventTime.In(mst).Format("3:04 PM MST")
+		// Scheduled — show game time in Mountain time (handles MST/MDT).
+		mountain, _ := time.LoadLocation("America/Denver")
+		gameTime := eventTime.In(mountain).Format("3:04 PM MST")
 		return fmt.Sprintf("- %s @ %s — %s",
 			away.Team.DisplayName, home.Team.DisplayName, gameTime)
 	}
