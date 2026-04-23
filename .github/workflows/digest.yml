@@ -2,8 +2,8 @@ name: Daily Digest
 
 on:
   schedule:
-    # Run at 5:00 AM MST (12:00 UTC) every day
-    - cron: "0 12 * * *"
+    # Run at 3:00 AM MST (10:00 UTC) every day
+    - cron: "0 10 * * *"
   workflow_dispatch: # Allow manual trigger
 
 jobs:
